@@ -607,6 +607,20 @@ class Request
     }
 
     /**
+     * @param string $header_name
+     * @return bool was this header set with addHeader(), ignoring case?
+     */
+    private function hasHeader($header_name)
+    {
+        foreach (\array_keys($this->headers) as $name) {
+            if (\strcasecmp($name, $header_name) === 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Add group of headers all at once.  Note: This is
      * here just as a convenience in very specific cases.
      * The preferred "readable" way would be to leverage
@@ -952,7 +966,11 @@ class Request
             $headers[] = $this->buildUserAgent();
         }
 
-        $headers[] = "Content-Type: {$this->content_type}";
+        // Like User-Agent and Accept: a Content-Type set with addHeader() is sent
+        // once, instead of next to the default line as a duplicate header.
+        if (!$this->hasHeader('Content-Type')) {
+            $headers[] = "Content-Type: {$this->content_type}";
+        }
 
         // allow custom Accept header if set
         if (!isset($this->headers['Accept'])) {
