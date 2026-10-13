@@ -1,3 +1,9 @@
+> **Envesko fork of [nategood/httpful](https://github.com/nategood/httpful).** Based on upstream
+> `master` at `1a267e1` (v1.0.0 plus the `http_build_query` null-argument fix, which upstream has
+> not tagged). The only code change is removing `curl_close()` from `Request::send()`: it has been
+> a no-op since PHP 8.0 and emits a deprecation notice on every request under PHP 8.5. Install with
+> Composer as `envesko/httpful`; the `Httpful\` namespace and API are unchanged.
+
 # Httpful
 
 Httpful is a simple Http Client library for PHP 8.0+. There is an emphasis of readability, simplicity, and flexibility – basically provide the features and flexibility to get the job done and make those features really easy to use.

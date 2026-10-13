@@ -1,7 +1,7 @@
 {
-  "name": "nategood/httpful",
-  "description": "A Readable, Chainable, REST friendly, PHP HTTP Client",
-  "homepage": "http://github.com/nategood/httpful",
+  "name": "envesko/httpful",
+  "description": "A Readable, Chainable, REST friendly, PHP HTTP Client (Envesko fork of nategood/httpful)",
+  "homepage": "https://github.com/envesko/httpful",
   "license": "MIT",
   "keywords": [
     "http",
@@ -11,7 +11,6 @@
     "api",
     "requests"
   ],
-  "version": "1.0.0",
   "authors": [
     {
       "name": "Nate Good",

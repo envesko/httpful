@@ -233,7 +233,8 @@ class Request
 
         $response = $this->buildResponse($result);
 
-        curl_close($this->_ch);
+        // curl_close() has been a no-op since PHP 8.0 (handles are objects freed on
+        // unset) and is deprecated in PHP 8.5, where it fired on every request.
         unset($this->_ch);
 
         return $response;
