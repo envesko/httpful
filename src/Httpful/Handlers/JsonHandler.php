@@ -25,7 +25,9 @@ class JsonHandler extends MimeHandlerAdapter
     public function parse($body)
     {
         $body = $this->stripBom($body);
-        if (empty($body))
+        // Whitespace-only bodies (a bare newline on a 200/204) mean "no content",
+        // not a JSON syntax error.
+        if (empty($body) || \trim($body) === '')
             return null;
         $parsed = json_decode($body, $this->decode_as_array);
         if (is_null($parsed) && 'null' !== strtolower($body))

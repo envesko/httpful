@@ -15,7 +15,9 @@ class FormHandler extends MimeHandlerAdapter
     public function parse($body)
     {
         $parsed = [];
-        parse_str($body, $parsed);
+        // Same BOM handling as the JSON/XML handlers; otherwise the first key
+        // keeps the invisible mark ("\u{feff}a" instead of "a").
+        parse_str($this->stripBom($body), $parsed);
         return $parsed;
     }
 

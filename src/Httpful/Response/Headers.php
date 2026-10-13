@@ -24,6 +24,11 @@ final class Headers implements \ArrayAccess, \Countable {
         $parse_headers = [];
         $headersCount = count($headers);
         for ($i = 1; $i < $headersCount; $i++) {
+            // Lines without a colon (an interim status line, a folded value) are
+            // not headers; list() on them raised "Undefined array key 1".
+            if (strpos($headers[$i], ':') === false) {
+                continue;
+            }
             [$key, $raw_value] = explode(':', $headers[$i], 2);
             $key = trim($key);
             $value = trim($raw_value);
