@@ -597,6 +597,11 @@ class Request
      */
     public function addHeader($header_name, $value)
     {
+        // A CR or LF would end the header line early and let the rest of the
+        // value inject extra headers into the request (#281).
+        if (\preg_match('/[\r\n]/', $header_name . $value)) {
+            throw new \InvalidArgumentException('Header "' . \strtok($header_name, "\r\n") . '" contains a line break.');
+        }
         $this->headers[$header_name] = $value;
         return $this;
     }
@@ -1032,26 +1037,11 @@ class Request
             $user_agent .= '?.?.?';
         }
 
-        $user_agent .= ' PHP/'. PHP_VERSION . ' (' . PHP_OS . ')';
-
-        if (isset($_SERVER['SERVER_SOFTWARE'])) {
-            $user_agent .= ' ' . \preg_replace('~PHP/[\d\.]+~U', '',
-                $_SERVER['SERVER_SOFTWARE']);
-        } else {
-            if (isset($_SERVER['TERM_PROGRAM'])) {
-                $user_agent .= " {$_SERVER['TERM_PROGRAM']}";
-            }
-
-            if (isset($_SERVER['TERM_PROGRAM_VERSION'])) {
-                $user_agent .= "/{$_SERVER['TERM_PROGRAM_VERSION']}";
-            }
-        }
-
-        if (isset($_SERVER['HTTP_USER_AGENT'])) {
-            $user_agent .= " {$_SERVER['HTTP_USER_AGENT']}";
-        }
-
-        return $user_agent . ')';
+        // The SERVER_SOFTWARE, TERM_PROGRAM and incoming HTTP_USER_AGENT values are
+        // no longer appended: they sent the visitor's browser string and the web
+        // server's module versions to every API called during a page view, and
+        // the visitor-controlled part went into a header unchecked (#281).
+        return $user_agent . ' PHP/'. PHP_VERSION . ' (' . PHP_OS . '))';
     }
 
     /**
