@@ -233,9 +233,11 @@ class Request
 
         $response = $this->buildResponse($result);
 
-        // curl_close() has been a no-op since PHP 8.0 (handles are objects freed on
-        // unset) and is deprecated in PHP 8.5, where it fired on every request.
-        unset($this->_ch);
+        // curl_close() has been a no-op since PHP 8.0 (handles are objects freed when
+        // released) and is deprecated in PHP 8.5, where it fired on every request.
+        // Null rather than unset(): unset() removed the declared property, so
+        // hasBeenInitialized() warned on the next send of the same request (#307).
+        $this->_ch = null;
 
         return $response;
     }
