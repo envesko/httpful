@@ -80,7 +80,7 @@ Value1,Value2
         // Our current defaults are as follows
         $r = Request::init();
         $this->assertEquals(Http::GET, $r->method);
-        $this->assertFalse($r->strict_ssl);
+        $this->assertTrue($r->strict_ssl);
     }
 
     function testShortMime()
@@ -582,6 +582,90 @@ Transfer-Encoding: chunked\r\n", $request);
             return;
         }
         $this->fail('Expected an exception to be thrown due to invalid json');
+    }
+
+    public function testResendingARequestRaisesNoWarning()
+    {
+        if (defined('WITHOUT_SERVER') && WITHOUT_SERVER) {
+            $this->markTestSkipped('needs the built-in test server');
+        }
+        $warnings = [];
+        set_error_handler(function ($no, $str) use (&$warnings) { $warnings[] = $str; return true; });
+        try {
+            $r = Request::get(TEST_SERVER . '/test.json');
+            $this->assertEquals(200, $r->send()->code);
+            $this->assertEquals(200, $r->send()->code);
+        } finally {
+            restore_error_handler();
+        }
+        $this->assertSame([], $warnings);
+    }
+
+    public function testHeaderWithLineBreakIsRejected()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Request::get('http://example.com/')->addHeader('X-Test', "value\r\nX-Injected: 1");
+    }
+
+    public function testUserAgentDoesNotForwardServerValues()
+    {
+        $saved = $_SERVER;
+        $_SERVER['HTTP_USER_AGENT'] = 'VisitorBrowser/1.0';
+        $_SERVER['SERVER_SOFTWARE'] = 'Apache/2.4.1 (Unix) OpenSSL/1.0.0';
+        try {
+            $ua = Request::get('http://example.com/')->buildUserAgent();
+        } finally {
+            $_SERVER = $saved;
+        }
+        $this->assertStringStartsWith('User-Agent: Httpful/' . Httpful::VERSION . ' (cURL/', $ua);
+        $this->assertStringNotContainsString('VisitorBrowser', $ua);
+        $this->assertStringNotContainsString('Apache', $ua);
+    }
+
+    public function testCallerContentTypeIsSentOnce()
+    {
+        foreach (['Content-Type', 'content-type'] as $name) {
+            $r = Request::post('http://example.com/')
+                ->addHeader($name, 'application/json')
+                ->sendsJson()
+                ->body('{}');
+            $r->_curlPrep();
+            $this->assertSame(1, substr_count(strtolower($r->raw_headers), 'content-type:'), $name);
+        }
+        $r = Request::post('http://example.com/')->sendsJson()->body('{}');
+        $r->_curlPrep();
+        $this->assertStringContainsString('Content-Type: application/json', $r->raw_headers);
+    }
+
+    public function testAttachSendsBasenameOnly()
+    {
+        $file = __DIR__ . '/../static/test.json';
+        $r = Request::post('http://example.com/')->attach(['f' => $file]);
+        $this->assertInstanceOf(\CURLFile::class, $r->payload['f']);
+        $this->assertSame('test.json', $r->payload['f']->getPostFilename());
+    }
+
+    public function testWhitespaceJsonBodyIsEmpty()
+    {
+        $this->assertNull((new JsonHandler())->parse(" \r\n"));
+    }
+
+    public function testFormBodyByteOrderMarkIsStripped()
+    {
+        $this->assertSame(['a' => '1', 'b' => '2'], (new \Httpful\Handlers\FormHandler())->parse("\xef\xbb\xbfa=1&b=2"));
+    }
+
+    public function testHeaderLinesWithoutColonAreSkipped()
+    {
+        $warnings = [];
+        set_error_handler(function ($no, $str) use (&$warnings) { $warnings[] = $str; return true; });
+        try {
+            $headers = \Httpful\Response\Headers::fromString("HTTP/1.1 200 OK\r\nnot a header\r\nX-A: b");
+        } finally {
+            restore_error_handler();
+        }
+        $this->assertSame([], $warnings);
+        $this->assertSame(['X-A' => 'b'], $headers->toArray());
     }
 
     // /**
