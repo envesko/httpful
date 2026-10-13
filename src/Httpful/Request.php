@@ -799,11 +799,10 @@ class Request
         // recusion.  Do not use this syntax elsewhere.
         // It goes against the whole readability
         // and transparency idea.
+        // The template used to call withoutStrictSSL(), which switched certificate
+        // and host verification off for every request (#247). It now keeps the
+        // property default (verify on); opt out per request with withoutStrictSSL().
         self::$_template = new Request(['method' => Http::GET]);
-
-        // This is more like it...
-        self::$_template
-            ->withoutStrictSSL();
     }
 
     /**
