@@ -1,8 +1,26 @@
 > **Envesko fork of [nategood/httpful](https://github.com/nategood/httpful).** Based on upstream
-> `master` at `1a267e1` (v1.0.0 plus the `http_build_query` null-argument fix, which upstream has
-> not tagged). The only code change is removing `curl_close()` from `Request::send()`: it has been
-> a no-op since PHP 8.0 and emits a deprecation notice on every request under PHP 8.5. Install with
-> Composer as `envesko/httpful`; the `Httpful\` namespace and API are unchanged.
+> `master` at `1a267e1` (v1.0.0 plus the untagged `http_build_query` null-argument fix). Install
+> with Composer as `envesko/httpful`; the `Httpful\` namespace and API are unchanged. Changes, one
+> commit each, all covered by tests:
+>
+> - `curl_close()` removed from `send()`: a no-op since PHP 8.0, deprecated in PHP 8.5.
+> - **TLS certificates are verified by default** ([#247]). Upstream's request template switched
+>   verification off for every request. Use `->withoutStrictSSL()` to opt out per request.
+> - Resending the same `Request` no longer warns about an undefined `$_ch` ([#307], [#227]).
+> - `addHeader()` rejects names or values containing CR/LF ([#281]).
+> - The User-Agent no longer appends the incoming visitor's User-Agent, `SERVER_SOFTWARE` or
+>   `TERM_PROGRAM` ([#281]).
+> - A `Content-Type` set with `addHeader()` replaces the default instead of being sent twice.
+> - `attach()` sends each file's basename, not its absolute server path ([#206]).
+> - Whitespace-only JSON bodies parse as `null`; form bodies have their BOM stripped; header lines
+>   without a colon are skipped instead of raising warnings (from the ideas in [#313]).
+>
+> [#206]: https://github.com/nategood/httpful/issues/206
+> [#227]: https://github.com/nategood/httpful/issues/227
+> [#247]: https://github.com/nategood/httpful/issues/247
+> [#281]: https://github.com/nategood/httpful/issues/281
+> [#307]: https://github.com/nategood/httpful/issues/307
+> [#313]: https://github.com/nategood/httpful/pull/313
 
 # Httpful
 
