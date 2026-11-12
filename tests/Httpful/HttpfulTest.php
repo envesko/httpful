@@ -555,9 +555,14 @@ Transfer-Encoding: chunked\r\n", $request);
 
     public function testHasProxyWithEnvironmentProxy()
     {
+        $previous = getenv('http_proxy');
         putenv('http_proxy=http://127.0.0.1:300/');
-        $r = Request::get('some_other_url');
-        $this->assertTrue($r->hasProxy());
+        try {
+            $r = Request::get('some_other_url');
+            $this->assertTrue($r->hasProxy());
+        } finally {
+            $previous === false ? putenv('http_proxy') : putenv('http_proxy=' . $previous);
+        }
     }
 
 
