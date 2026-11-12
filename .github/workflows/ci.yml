@@ -55,5 +55,6 @@ jobs:
           fi;
           composer dump-autoload -o
       - name: Run tests
+        working-directory: tests
         run: |
-          php vendor/bin/phpunit -c tests/phpunit.xml
+          php ../vendor/bin/phpunit -c phpunit.xml
