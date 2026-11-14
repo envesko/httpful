@@ -11,7 +11,7 @@
     </testsuite>
   </testsuites>
   <php>
-    <const name="WEB_SERVER_HOST" value="localhost"/>
+    <const name="WEB_SERVER_HOST" value="127.0.0.1"/>
     <const name="WEB_SERVER_PORT" value="1349"/>
     <const name="WEB_SERVER_DOCROOT" value="./static"/>
     <env name="http_proxy" value=""/>
